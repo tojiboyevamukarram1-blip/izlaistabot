@@ -126,6 +126,18 @@ class DownloadManager:
             "socket_timeout": settings.request_timeout,
             "ffmpeg_location": settings.resolved_ffmpeg_path,
             "merge_output_format": "mp4",
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["android", "ios", "mweb", "web"],
+                }
+            },
+            "http_headers": {
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/128.0.0.0 Safari/537.36"
+                ),
+            },
         }
 
         if settings.cookies_file and settings.cookies_file.exists():

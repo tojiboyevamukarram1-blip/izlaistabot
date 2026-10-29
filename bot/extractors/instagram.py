@@ -28,6 +28,13 @@ class InstagramExtractor(BaseExtractor):
             "extract_flat": False,
             "noplaylist": False,
             "socket_timeout": settings.request_timeout,
+            "http_headers": {
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/128.0.0.0 Safari/537.36"
+                ),
+            },
         }
         if settings.cookies_file and settings.cookies_file.exists():
             self.ydl_opts["cookiefile"] = str(settings.cookies_file)
