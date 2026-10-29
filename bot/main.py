@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import os
 import signal
 import sys
+from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -19,12 +21,40 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("media_bot")
+_health_runner: web.AppRunner | None = None
+
+
+async def start_health_server() -> None:
+    """Starts a minimal HTTP health check server if PORT environment variable is set (Render/Cloud)."""
+    global _health_runner
+    port_str = os.getenv("PORT")
+    if not port_str:
+        return
+
+    try:
+        port = int(port_str)
+        app = web.Application()
+
+        async def ping_handler(request: web.Request) -> web.Response:
+            return web.Response(text="Bot is running OK", content_type="text/plain")
+
+        app.router.add_get("/", ping_handler)
+        app.router.add_get("/health", ping_handler)
+
+        _health_runner = web.AppRunner(app)
+        await _health_runner.setup()
+        site = web.TCPSite(_health_runner, "0.0.0.0", port)
+        await site.start()
+        logger.info(f"🌐 Cloud Health Check HTTP server listening on 0.0.0.0:{port}")
+    except Exception as e:
+        logger.warning(f"Failed to start health check server: {e}")
 
 
 async def on_startup(bot: Bot) -> None:
     """Startup initialization tasks."""
     logger.info("Initializing bot services...")
     settings.temp_dir.mkdir(parents=True, exist_ok=True)
+    await start_health_server()
     await cache_service.connect()
     await bot.delete_webhook(drop_pending_updates=True)
     bot_user = await bot.get_me()
@@ -39,7 +69,10 @@ async def on_startup(bot: Bot) -> None:
 
 async def on_shutdown(bot: Bot) -> None:
     """Graceful shutdown tasks."""
+    global _health_runner
     logger.info("Shutting down bot services...")
+    if _health_runner:
+        await _health_runner.cleanup()
     await cache_service.close()
     await bot.session.close()
     cleanup_directory(settings.temp_dir)
