@@ -28,6 +28,7 @@ class YouTubeExtractor(BaseExtractor):
             "no_warnings": True,
             "extract_flat": False,
             "noplaylist": True,
+            "source_address": "0.0.0.0",
             "socket_timeout": settings.request_timeout,
             "extractor_args": {
                 "youtube": {
@@ -42,13 +43,14 @@ class YouTubeExtractor(BaseExtractor):
                 ),
             },
         }
-        if settings.cookies_file and settings.cookies_file.exists():
-            self.ydl_opts["cookiefile"] = str(settings.cookies_file)
 
     def _sync_extract_info(self, url: str) -> Optional[Dict[str, Any]]:
         """Synchronously extracts metadata using yt-dlp."""
+        opts = dict(self.ydl_opts)
+        if settings.cookies_file and settings.cookies_file.exists():
+            opts["cookiefile"] = str(settings.cookies_file)
         try:
-            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+            with yt_dlp.YoutubeDL(opts) as ydl:
                 return ydl.extract_info(url, download=False)
         except Exception as e:
             logger.warning(f"yt-dlp extract_info failed for {url}: {e}")

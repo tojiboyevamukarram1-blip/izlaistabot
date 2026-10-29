@@ -54,6 +54,13 @@ async def on_startup(bot: Bot) -> None:
     """Startup initialization tasks."""
     logger.info("Initializing bot services...")
     settings.temp_dir.mkdir(parents=True, exist_ok=True)
+    cookies_content = os.getenv("COOKIES_CONTENT")
+    if cookies_content and cookies_content.strip():
+        cookies_path = Path("cookies.txt")
+        cookies_path.write_text(cookies_content.strip(), encoding="utf-8")
+        settings.cookies_file = cookies_path
+        logger.info("🍪 Cookies successfully loaded from COOKIES_CONTENT environment variable.")
+
     await start_health_server()
     await cache_service.connect()
     await bot.delete_webhook(drop_pending_updates=True)

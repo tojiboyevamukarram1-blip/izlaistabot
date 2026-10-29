@@ -123,6 +123,7 @@ class DownloadManager:
             "no_warnings": True,
             "progress_hooks": [sync_hook],
             "noplaylist": True,
+            "source_address": "0.0.0.0",
             "socket_timeout": settings.request_timeout,
             "ffmpeg_location": settings.resolved_ffmpeg_path,
             "merge_output_format": "mp4",
