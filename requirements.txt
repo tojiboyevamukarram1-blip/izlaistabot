@@ -1,0 +1,10 @@
+aiogram>=3.17.0
+yt-dlp>=2025.2.19
+aiohttp>=3.11.11
+redis>=5.2.1
+pydantic>=2.10.4
+pydantic-settings>=2.7.1
+mutagen>=1.47.0
+Pillow>=11.1.0
+pytest>=8.3.4
+pytest-asyncio>=0.25.2

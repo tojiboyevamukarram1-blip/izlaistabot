@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: botinsta_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - bot_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: botinsta_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - FFMPEG_PATH=ffmpeg
+      - TEMP_DIR=/app/temp_media
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - temp_data:/app/temp_media
+    networks:
+      - bot_network
+
+volumes:
+  redis_data:
+  temp_data:
+
+networks:
+  bot_network:
+    driver: bridge
